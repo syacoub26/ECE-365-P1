@@ -3,9 +3,9 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
-
 #include "hash.h"
+
+using namespace std;
 
 void lowerCase(string &s) {
 	for(int i = 0; i < s.length(); i++){
@@ -32,7 +32,7 @@ int main() {
 	ifstream dict(dictFile);
 
 	//loading dictionary
-	hashTable dictWords();
+	hashTable dictWords;
 	string word;
 	getline(dict, word);
 	while(!word.empty()) {

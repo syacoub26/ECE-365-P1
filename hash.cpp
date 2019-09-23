@@ -1,19 +1,21 @@
 #include <string>
 #include <vector>
 
+using namespace std;
+
 #include "hash.h"
 
 int primes[] = {12289, 24593, 49157, 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917,
 	25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741};
 
 
-hashTable::hashTable(int size = 0) {
+hashTable::hashTable(int size) {
 	filled = 0;
 	capacity = getPrime(size*2);
 	data.resize(capacity);
 }
 
-int hashTable::insert(const string &key, bool *b = nullptr) {
+int hashTable::insert(const string &key, void *b) {
 	/*if( filled*2 >= capacity ){
 		rehash();
 		if( filled*2 >= capacity ) { return 2; }
@@ -46,7 +48,7 @@ bool hashTable::contains(const string &key) {
 	}
 }
 
-void *hashTable::getPointer(const string &key, bool *b = nullptr) {}
+void *hashTable::getPointer(const string &key, bool *b) {}
 
 int hashTable::setPointer(const string &key, void *pv) {
 	int i = findPos(key);
@@ -124,7 +126,7 @@ bool hashTable::rehash() {
 	}
 }
 
-static unsigned int hashTable::getPrime(int size) {
+unsigned int hashTable::getPrime(int size) {
 	for(int i = 0; i < 18; i++){
 		if( primes[i] > size){
 			return primes[i];
