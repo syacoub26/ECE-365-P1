@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <ctime>
 
 #include "hash.h"
 
@@ -15,7 +16,11 @@ void lowerCase(string &s) {
 	}
 }
 
-bool validChar(const char &c) {
+bool validChar(char &c) {
+	if(c >= 'A' && c <= 'Z') {
+		c += 32;
+	}
+
 	return (c == 39) ||
 		(c == '-') ||
 		(c >= '0' && c <= '9') ||
@@ -32,16 +37,21 @@ int main() {
 	ifstream dict(dictFile);
 
 	//loading dictionary
+	clock_t t1 = clock();
 	hashTable dictWords;
 	string word;
 	getline(dict, word);
-	while(!word.empty()) {
+	while(!dict.eof()) {
 		if(word.length() <= 20) {
 			lowerCase(word);
 			int i = dictWords.insert(word);
+			//cout << i << ": " << word << endl;
 		}
 		getline(dict, word);
 	}
+	clock_t t2 = clock();
+	double timeDiff = ((double)(t2-t1))/CLOCKS_PER_SEC;
+	cout << "Total time (in seconds) to load dictionary: " << timeDiff << "\n";
 
 	//input file
 	string inFile;
@@ -56,10 +66,12 @@ int main() {
 	ofstream output(outFile);
 
 	//processing lines
+	clock_t t3 = clock();
 	string line;
 	getline(input, line);
 	int curline = 1;
-	while(!line.empty()) {
+
+	while(!input.eof()) {
 		
 		//processing word by word
 		bool longword = false;
@@ -70,6 +82,7 @@ int main() {
 			if(validChar(j)) {
 				l++;
 				if(l <= 20) {
+					longword = false;
 					w += j;
 				}else{
 					longword = true;
@@ -78,7 +91,7 @@ int main() {
 				l = 0;
 				lowerCase(w);
 				if(longword) {
-					output << "Long word at line " << curline << ", starts : " << w << "\n";
+					output << "Long word at line " << curline << ", starts: " << w << "\n";
 				}else if(!dictWords.contains(w) && w.length() > 0) {
 					output << "Unkown word at line " << curline << ": " << w << "\n";
 				}
@@ -86,10 +99,23 @@ int main() {
 			}
 		}
 
+		lowerCase(w);
+		if(longword){
+			output << "Long word at line "  << curline << ", starts: " << w << "\n";
+		}else if(!dictWords.contains(w) && w.length() > 0) {
+			output << "Unkown word at line " << curline << ": " << w << "\n";
+		}
+
 		getline(input, line);
 		curline++;
 	}
 
 	output.close();
+
+	clock_t t4 = clock();
+	timeDiff = ((double)(t4-t3))/CLOCKS_PER_SEC;
+	cout << "Total time (in seconds) to check document: " << timeDiff;
+
+
 	return 0;
 }

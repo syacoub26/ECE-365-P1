@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -8,7 +9,6 @@ using namespace std;
 int primes[] = {12289, 24593, 49157, 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917,
 	25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741};
 
-
 hashTable::hashTable(int size) {
 	filled = 0;
 	capacity = getPrime(size*2);
@@ -16,35 +16,35 @@ hashTable::hashTable(int size) {
 }
 
 int hashTable::insert(const string &key, void *b) {
-	/*if( filled*2 >= capacity ){
+	if( filled*2 >= capacity ){
 		rehash();
 		if( filled*2 >= capacity ) { return 2; }
-	}*/
+	}
 
-	if( findPos(key) > 0) {
+	if( findPos(key) >= 0) {
 		return 1;
 	}else{
-		int curPos = hash(key);
-		while( data[curPos].isOccupied ) {
-			curPos++;
-			if(curPos >= capacity){
-				curPos = 0;
+		int pos = hash(key);
+		while( data[pos].isOccupied ) {
+			pos++;
+			if(pos == capacity){
+				pos = 0;
 			}
 		}
-		data[curPos].key = key;
-		data[curPos].isOccupied = true;
-		data[curPos].isDeleted = false;
-		data[curPos].pv = b;
+		data[pos].key = key;
+		data[pos].isOccupied = true;
+		data[pos].pv = b;
+		filled++;
 		return 0;
 	}
 }
 
 bool hashTable::contains(const string &key) {
 	int i = findPos(key);
-	if ( i = -1 ) { 
+	if ( i < 0 ) { 
 		return false; 
 	}else{
-		return !data[ findPos(key) ].isDeleted;
+		return !data[i].isDeleted;
 	}
 }
 
@@ -66,10 +66,9 @@ bool hashTable::remove(const string &key) {
 		return false;
 	}else{
 		data[i].isDeleted = true;
+		filled--;
 		return true;
 	}
-
-	filled--;
 }
 
 int hashTable::hash(const string &key) {
@@ -89,15 +88,14 @@ int hashTable::hash(const string &key) {
 }
 
 int hashTable::findPos(const string &key) {
-	int inPos = hash(key);
-	int curPos = inPos;
+	int pos = hash(key);
 
-	while( data[ curPos ].isOccupied ){
-		if( data[ curPos ].key != key ) {
-			curPos++;
-			if( curPos = capacity ) { curPos = 0; }
+	while( data[ pos ].isOccupied ){
+		if( data[ pos ].key == key ) {
+			return pos;
 		}else{
-			return curPos;
+			pos++;
+			if( pos == capacity ) { pos = 0; }
 		}
 	}
 
@@ -105,25 +103,28 @@ int hashTable::findPos(const string &key) {
 }
 
 bool hashTable::rehash() {
-	vector<hashItem> prevData = data;
-	data.resize( getPrime( 2*capacity) );
-	capacity = data.size();
+	//cout << "started rehashing" << endl;
+	vector<hashItem> newData;
+	newData.resize( getPrime(2*capacity) );
+	capacity = newData.size();
 
-	int j = 0;
-	for( int i = 0; i < prevData.size(); i++){
-		if( prevData[i].isOccupied && !prevData[i].isDeleted ) {
-			data[j++] = prevData[i];
-		}else if( !prevData[i].isOccupied ) {
-			j++;
+	for(auto i: data) {
+		string newKey = i.key;
+		if (i.isOccupied && !i.isDeleted) {
+			int pos = hash( newKey );
+			while( newData[pos].isOccupied ) {
+				pos++;
+				if (pos == capacity) {
+					pos = 0;
+				}
+			}
+			newData[pos].key = newKey;
+			newData[pos].isOccupied = true;
 		}
 	}
 
-	for( j = prevData.size(); j < capacity; j++){
-		data[j].key = "";
-		data[j].isOccupied = false;
-		data[j].isDeleted = false;
-		data[j].pv = nullptr;
-	}
+	data = move(newData);
+
 }
 
 unsigned int hashTable::getPrime(int size) {
@@ -133,5 +134,5 @@ unsigned int hashTable::getPrime(int size) {
 		}
 	}
 
-	return size*2 + 1;
+	return size + 1;
 }
